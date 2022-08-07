@@ -1,18 +1,31 @@
-import { FC, Dispatch, SetStateAction } from "react";
+import { FC, Dispatch, SetStateAction, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import FormSchema from "../models/FormSchema";
+import FormType from "../models/FormType";
 import { PencilIcon } from "@heroicons/react/outline";
 import ErrorMessage from "./ErrorMessage";
 import USGSDataType from "../models/USGSDataType";
 
-type FormData = {
-  location: string;
-  startDate: Date;
-  endDate: Date;
-  minMag: number;
-  maxMag: number;
-  searchRadius: number;
-  resultLimit: number;
+const formatDate = (date: Date): string => {
+  return [
+    date.getFullYear(),
+    (date.getMonth() + 1).toString().padStart(2, "0"),
+    date.getDate().toString().padStart(2, "0"),
+  ].join("-");
+};
+
+const autoFillFormValues: FormType = {
+  location: "San Francisco",
+  startDate: "1900-01-01",
+  startDateCheck: false,
+  endDate: formatDate(new Date()),
+  endDateCheck: true,
+  minMag: 6,
+  maxMag: 10,
+  searchRadius: 100,
+  resultLimit: 20,
 };
 
 const Form: FC<{
@@ -20,10 +33,25 @@ const Form: FC<{
 }> = ({ displayData }) => {
   const {
     register,
+    watch,
+    trigger,
     handleSubmit,
+    reset,
     formState: { errors },
-  } = useForm<FormData>({ reValidateMode: "onBlur" });
-  const onSubmit: SubmitHandler<FormData> = (data) => console.log(data);
+  } = useForm<FormType>({
+    resolver: yupResolver(FormSchema),
+  });
+  const onSubmit: SubmitHandler<FormType> = (data) => console.log(data);
+
+  const watchStartDateCheck = watch("startDateCheck", false);
+  const watchEndDateCheck = watch("endDateCheck", false);
+
+  useEffect(() => {
+    if (watchStartDateCheck || watchEndDateCheck) {
+      trigger("startDate");
+      trigger("endDate");
+    }
+  }, [trigger, watchStartDateCheck, watchEndDateCheck]);
 
   return (
     <div className="flex flex-col justify-center items-center">
@@ -31,13 +59,16 @@ const Form: FC<{
         Search for earthquake data by filling the form and clicking Search
         below.
       </p>
-      <button className="flex flex-row flex-nowrap items-center border-2 border-slate-800">
+      <button
+        onClick={() => reset(autoFillFormValues)}
+        className="flex flex-row flex-nowrap items-center border-2 border-slate-800"
+      >
         <PencilIcon className="h-4" />
         Auto-fill Form
       </button>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col w-full space-y-3"
+        className="flex flex-col w-full space-y-6"
       >
         <div className="formSection">
           <label className="formLabel">Location</label>
@@ -47,40 +78,68 @@ const Form: FC<{
             {...register("location", { required: true })}
           />
           {errors.location ? (
-            <ErrorMessage message="Enter a location." />
+            <ErrorMessage message={errors.location.message} />
           ) : null}
         </div>
 
         <div className="formSection">
-          <label className="formLabel">Start Date</label>
+          <div className="flex flex-row justify-between items-baseline gap-3">
+            <label className="formLabel">Start Date</label>
+            <span className="h-[.1px] grow bg-orange-300" />
+            <div className="flex flex-row flex-nowrap gap-1 items-center hover:cursor-pointer">
+              <input
+                type="checkbox"
+                id="startDateCheck"
+                className="accent-slate-800 hover:cursor-pointer h-4 w-4"
+                {...register("startDateCheck")}
+              />
+              <label htmlFor="startDateCheck" className="hover:cursor-pointer">
+                30 Days Before
+              </label>
+            </div>
+          </div>
           <input
-            type="text"
+            type="date"
             placeholder="Starting date of quake events"
-            className="formInput"
-            {...register("startDate", { required: true })}
-            onFocus={(e) => (e.target.type = "date")}
+            className="formInput disabled:opacity-50"
+            {...register("startDate")}
+            disabled={watchStartDateCheck}
           />
           {errors.startDate ? (
-            <ErrorMessage message="Enter a starting date." />
+            <ErrorMessage message={errors.startDate.message} />
           ) : null}
         </div>
 
         <div className="formSection">
-          <label className="formLabel">End Date</label>
+          <div className="flex flex-row justify-between items-baseline gap-3">
+            <label className="formLabel">End Date</label>
+            <span className="h-[.1px] grow bg-orange-300" />
+            <div className="flex flex-row flex-nowrap gap-1 items-center hover:cursor-pointer">
+              <input
+                type="checkbox"
+                id="endDateCheck"
+                className="accent-slate-800 hover:cursor-pointer h-4 w-4"
+                {...register("endDateCheck")}
+              />
+              <label htmlFor="endDateCheck" className="hover:cursor-pointer">
+                Now
+              </label>
+            </div>
+          </div>
           <input
-            type="text"
+            type="date"
             placeholder="Ending date of quake events"
-            className="formInput"
-            {...register("endDate", { required: true })}
-            onFocus={(e) => (e.target.type = "date")}
+            className="formInput disabled:opacity-50"
+            {...register("endDate")}
+            disabled={watchEndDateCheck}
           />
           {errors.endDate ? (
-            <ErrorMessage message="Enter an ending date." />
+            <ErrorMessage message={errors.endDate.message} />
           ) : null}
         </div>
 
         <div className="formSection">
-          <label className="formLabel">Magnitude</label>
+          <label className="formLabel">Magnitude (0 - 10)</label>
           <div className="flex flex-row items-center gap-3">
             <input
               type="text"
@@ -102,7 +161,7 @@ const Form: FC<{
         </div>
 
         <div className="formSection">
-          <label className="formLabel">Search Radius</label>
+          <label className="formLabel">Search Radius (km)</label>
           <input
             type="text"
             placeholder="Radius in kilometers of the search area"
@@ -110,7 +169,7 @@ const Form: FC<{
             {...register("searchRadius", { required: true })}
           />
           {errors.searchRadius ? (
-            <ErrorMessage message="Enter a search radius (0 - 20000)." />
+            <ErrorMessage message={errors.searchRadius.message} />
           ) : null}
         </div>
 
@@ -123,7 +182,7 @@ const Form: FC<{
             {...register("resultLimit", { required: true })}
           />
           {errors.resultLimit ? (
-            <ErrorMessage message="Enter a result limit (0 - 1000)." />
+            <ErrorMessage message={errors.resultLimit.message} />
           ) : null}
         </div>
 
