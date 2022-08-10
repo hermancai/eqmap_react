@@ -6,13 +6,13 @@ import FormSchema from "../models/FormSchema";
 import { FormType, defaultFormValues } from "../models/FormType";
 import { PencilIcon } from "@heroicons/react/outline";
 import ErrorMessage from "./ErrorMessage";
-import USGSDataType from "../models/USGSDataType";
+import { USGSReturnedObject } from "../models/USGSDataType";
 import { getCoordinates } from "../services/geocoder";
 import { useJsApiLoader } from "@react-google-maps/api";
 import getUSGSdata from "../services/USGSapi";
 
 const Form: React.FC<{
-  setData: React.Dispatch<React.SetStateAction<USGSDataType | null>>;
+  setData: React.Dispatch<React.SetStateAction<USGSReturnedObject | null>>;
 }> = ({ setData }) => {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -31,23 +31,29 @@ const Form: React.FC<{
     setisLoading(true);
     setSearchError("");
 
-    // Geocoder will not be null after google script and page is loaded
+    // Geocoder should not be null after google script and page is loaded
     const geocoderResponse = await getCoordinates(
       geocoder!,
       getValues("location")
     );
 
-    setisLoading(false);
-    if (geocoderResponse.error) {
-      return setSearchError(geocoderResponse.error);
+    if (geocoderResponse.error || !geocoderResponse.res) {
+      setisLoading(false);
+      return setSearchError(
+        geocoderResponse.error || "Failed to geocode the location"
+      );
     }
 
-    // If success: build url for usgs.
-    //    If usgs success: build map
-    //    If usgs error: show error
-    const USGSResponse = getUSGSdata(getValues());
+    const USGSResponse = await getUSGSdata(getValues(), geocoderResponse.res);
+    if (USGSResponse.error || !USGSResponse.response) {
+      setisLoading(false);
+      return setSearchError(
+        USGSResponse.error || "Failed to get data from USGS"
+      );
+    }
 
-    setData(geocoderResponse);
+    setisLoading(false);
+    setData(USGSResponse.response);
   };
 
   const {

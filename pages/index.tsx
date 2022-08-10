@@ -4,13 +4,11 @@ import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Form from "../components/Form";
-import USGSDataType from "../models/USGSDataType";
+import Results from "../components/Results";
+import { USGSReturnedObject } from "../models/USGSDataType";
 
 const Home: NextPage = () => {
-  const [data, setData] = useState<USGSDataType | null>(null);
-  const displayData = (data: USGSDataType | null): void => {
-    setData(data);
-  };
+  const [data, setData] = useState<USGSReturnedObject | null>(null);
 
   return (
     <div className="flex flex-col justify-between items-center min-h-screen bg-slate-100">
@@ -21,8 +19,9 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.png" />
       </Head>
       <Header />
-      <div className="w-[90%] lg:w-1/2 mb-auto mt-6 py-6 bg-white rounded-md p-6 border-[1px] border-slate-300">
-        <Form displayData={displayData} />
+      <div className="w-[90%] lg:w-1/2 mb-auto flex flex-col gap-6">
+        <Form setData={setData} />
+        <Results data={data} />
       </div>
       <Footer />
     </div>
