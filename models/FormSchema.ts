@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-import FormType from "./FormType";
+import { FormType } from "./FormType";
 
 // Bug? https://github.com/jquense/yup/issues/1529
 const FormSchema: Yup.SchemaOf<FormType> = Yup.object({
