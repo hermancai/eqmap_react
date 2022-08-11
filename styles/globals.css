@@ -16,10 +16,38 @@ body {
   }
 
   .formLabel {
-    @apply text-lg;
+    @apply text-base;
   }
 
   .formInput {
     @apply box-border w-full border-b-2 focus:outline-none p-2;
+  }
+
+  .animateUnderline {
+    @apply absolute bottom-0 left-0 h-0 w-0 border-2 border-transparent transition-[border-color,width] duration-200 ease-in;
+  }
+
+  .formInput:focus + span {
+    @apply w-full border-orange-400;
+  }
+
+  .animateBorder {
+    @apply absolute cursor-pointer w-0 h-0 border-[3px] border-transparent transition-[height,width] duration-200 ease-in;
+  }
+
+  .topSpan {
+    @apply border-l-0 border-t-0 right-0 bottom-0;
+  }
+
+  .bottomSpan {
+    @apply border-r-0 border-b-0 left-0 top-0;
+  }
+
+  .animateButton:hover span {
+    @apply h-full w-full rounded-md border-orange-400;
+  }
+
+  .animateButton:active {
+    @apply translate-y-[1px];
   }
 }

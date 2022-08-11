@@ -3,7 +3,7 @@ import Image from "next/image";
 
 const Header: FC = () => {
   return (
-    <div className="w-full flex items-center justify-center bg-slate-800 py-6 gap-3">
+    <div className="w-full flex items-center justify-center bg-slate-800 py-6 gap-3 mb-6">
       <Image
         alt="earthquake map logo"
         src="/favicon.png"
