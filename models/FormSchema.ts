@@ -58,11 +58,15 @@ const FormSchema: Yup.SchemaOf<FormType> = Yup.object({
   minMag: Yup.number().typeError("").required().min(0).max(Yup.ref("maxMag")),
   maxMag: Yup.number().typeError("").required().min(Yup.ref("minMag")).max(10),
   searchRadius: Yup.number()
-    .typeError("Enter a search radius (0 - 20000).")
-    .required("Enter a search radius (0 - 20000)."),
+    .min(1, "Enter a search radius (1 - 20000).")
+    .max(20000, "Enter a search radius (1 - 20000).")
+    .typeError("Enter a search radius (1 - 20000).")
+    .required("Enter a search radius (1 - 20000)."),
   resultLimit: Yup.number()
-    .typeError("Enter a result limit (0 - 1000).")
-    .required("Enter a result limit (0 - 1000)."),
+    .min(1, "Enter a result limit (1 - 1000).")
+    .max(1000, "Enter a result limit (1 - 1000).")
+    .typeError("Enter a result limit (1 - 1000).")
+    .required("Enter a result limit (1 - 1000)."),
 });
 
 export default FormSchema;
