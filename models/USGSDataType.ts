@@ -14,6 +14,7 @@ type USGSReturnedObject = {
   bbox?: number[];
   features: EarthquakeData[];
   metadata: {};
+  center: google.maps.LatLng;
 };
 
-export { type USGSReturnedObject };
+export { type USGSReturnedObject, type EarthquakeData };

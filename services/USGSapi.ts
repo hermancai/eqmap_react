@@ -21,15 +21,19 @@ const getUSGSdata = async (
   formValues: FormType,
   res: google.maps.GeocoderResponse
 ): Promise<{ response?: USGSReturnedObject; error?: string }> => {
-  const url = buildURL(
-    formValues,
-    res.results[0].geometry.location.lat(),
-    res.results[0].geometry.location.lng()
-  );
+  const lat = res.results[0].geometry.location.lat();
+  const lng = res.results[0].geometry.location.lng();
+  const url = buildURL(formValues, lat, lng);
 
   try {
     const response = await fetch(url);
-    return { response: await response.json() };
+    const responseJSON: USGSReturnedObject = await response.json();
+    return {
+      response: {
+        ...responseJSON,
+        center: new google.maps.LatLng({ lat: lat, lng: lng }),
+      },
+    };
   } catch (e) {
     return { error: "Failed to get data from USGS" };
   }

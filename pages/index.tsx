@@ -19,10 +19,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.png" />
       </Head>
       <Header />
-      <div className="w-[90%] lg:w-1/2 mb-auto flex flex-col gap-6">
-        <Form setData={setData} />
-        <Results data={data} />
-      </div>
+      <Form setData={setData} />
+      <Results data={data} />
       <Footer />
     </div>
   );
