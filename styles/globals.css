@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html,
 body {
   padding: 0;
@@ -6,21 +10,44 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@layer components {
+  .formSection {
+    @apply flex flex-col w-full md:w-1/2;
   }
-  body {
-    color: white;
-    background: black;
+
+  .formLabel {
+    @apply text-base;
+  }
+
+  .formInput {
+    @apply box-border w-full border-b-2 focus:outline-none p-2;
+  }
+
+  .animateUnderline {
+    @apply absolute bottom-0 left-0 h-0 w-0 border-2 border-transparent transition-[border-color,width] duration-200 ease-in;
+  }
+
+  .formInput:focus + span {
+    @apply w-full border-orange-400;
+  }
+
+  .animateBorder {
+    @apply absolute cursor-pointer w-0 h-0 border-[3px] border-transparent transition-[height,width] duration-200 ease-in;
+  }
+
+  .topSpan {
+    @apply border-l-0 border-t-0 right-0 bottom-0;
+  }
+
+  .bottomSpan {
+    @apply border-r-0 border-b-0 left-0 top-0;
+  }
+
+  .animateButton:hover span {
+    @apply h-full w-full rounded-md border-orange-400;
+  }
+
+  .animateButton:active {
+    @apply translate-y-[1px];
   }
 }
