@@ -1,65 +1,37 @@
 import { FC, useState, useEffect, useCallback, useRef } from "react";
 import { USGSReturnedObject } from "../models/USGSDataType";
 import { Marker, GoogleMap } from "@react-google-maps/api";
-
-type MarkerDetails = {
-  position: google.maps.LatLng | google.maps.LatLngLiteral;
-  icon?: string | google.maps.Icon | google.maps.Symbol | undefined;
-  time: number;
-  onMouseOver: Function;
-  onMouseOut: Function;
-};
+import MarkerDetails from "../models/CustomMarkerType";
+import CustomMarker from "./CustomMarker";
 
 const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markerList, setMarkerList] = useState<MarkerDetails[]>([]);
 
-  useEffect(() => {
-    if (data === null || map === null) return setMarkerList([]);
+  // This derived state handles adding/removing center marker from map.
+  const [center, setCenter] = useState<google.maps.LatLng | null>(null);
 
+  useEffect(() => {
+    if (data === null || map === null) {
+      setMarkerList([]);
+      setCenter(null);
+      return;
+    }
+
+    setCenter(data.center);
     const bounds = new google.maps.LatLngBounds(data.center);
     const newMarkerList = data.features.map((entry): MarkerDetails => {
-      const position = {
+      bounds.extend({
         lat: entry.geometry.coordinates[1],
         lng: entry.geometry.coordinates[0],
-      };
-
-      const redIcon: google.maps.Symbol = {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: entry.properties.mag * 5,
-        fillColor: "red",
-        fillOpacity: 0.25,
-        strokeColor: "white",
-        strokeWeight: 0.5,
-      };
-
-      const infoWindow = new google.maps.InfoWindow({
-        content: `<p>${entry.properties.place}<br>Magnitude: ${
-          entry.properties.mag
-        }<br>${new Date(entry.properties.time).toLocaleString()}</p>`,
-        position: position,
-        pixelOffset: new google.maps.Size(0, entry.properties.mag * -5),
       });
 
-      bounds.extend(position);
-
       return {
-        position: position,
-        icon: redIcon,
-        time: entry.properties.time,
-        onMouseOver: () => {
-          infoWindow.open({ map: map });
-        },
-        onMouseOut: () => infoWindow.close(),
+        details: entry,
+        id: entry.id,
+        selected: false,
       };
-    });
-
-    newMarkerList.push({
-      position: data.center,
-      time: new Date().getTime(),
-      onMouseOut: () => null,
-      onMouseOver: () => null,
     });
 
     setMarkerList(newMarkerList);
@@ -78,6 +50,16 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
     setMarkerList([]);
     setMap(null);
   }, []);
+
+  const toggleSelect = (id: string): void => {
+    setMarkerList((prevState) => {
+      return prevState.map((entry) => {
+        return id === entry.id
+          ? { ...entry, selected: !entry.selected }
+          : entry;
+      });
+    });
+  };
 
   if (data === null) return <></>;
 
@@ -101,17 +83,14 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
         center={data.center}
         zoom={9}
       >
+        {center === null ? null : <Marker position={center}></Marker>}
         {markerList.map((entry) => (
-          <Marker
-            onMouseOver={() => {
-              console.log("hover");
-              entry.onMouseOver();
-            }}
-            onMouseOut={() => entry.onMouseOut()}
-            position={entry.position}
-            icon={entry.icon}
-            key={entry.time}
-          ></Marker>
+          <CustomMarker
+            entry={entry}
+            map={map}
+            key={entry.id}
+            toggleSelect={toggleSelect}
+          />
         ))}
       </GoogleMap>
     </div>

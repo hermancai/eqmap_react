@@ -8,6 +8,7 @@ type EarthquakeData = {
     time: number;
     title: string;
   };
+  id: string;
 };
 
 type USGSReturnedObject = {
