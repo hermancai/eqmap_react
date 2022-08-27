@@ -1,6 +1,6 @@
 import React from "react";
 import { Marker } from "@react-google-maps/api";
-import MarkerDetails from "../models/CustomMarkerType";
+import MarkerDetails from "../types/CustomMarkerType";
 
 const CustomMarker: React.FC<{
   entry: MarkerDetails;

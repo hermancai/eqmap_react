@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Form from "../components/Form";
 import Results from "../components/Results";
-import { USGSReturnedObject } from "../models/USGSDataType";
+import { USGSReturnedObject } from "../types/USGSDataType";
 
 const Home: NextPage = () => {
   const [data, setData] = useState<USGSReturnedObject | null>(null);
