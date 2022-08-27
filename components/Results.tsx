@@ -1,8 +1,9 @@
 import { FC, useState, useEffect, useCallback, useRef } from "react";
-import { USGSReturnedObject } from "../models/USGSDataType";
+import { USGSReturnedObject } from "../types/USGSDataType";
 import { Marker, GoogleMap } from "@react-google-maps/api";
-import MarkerDetails from "../models/CustomMarkerType";
+import MarkerDetails from "../types/CustomMarkerType";
 import CustomMarker from "./CustomMarker";
+import ResultsTable from "./ResultsTable";
 
 const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -68,11 +69,6 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
       ref={sectionRef}
       className="w-[90%] mt-6 flex flex-col justify-center items-center bg-white rounded-md p-6 border-[1px] border-slate-300 gap-6"
     >
-      <p className="underline decoration-orange-400 decoration-2 text-lg">
-        {data.features.length === 1
-          ? "1 earthquake found."
-          : data.features.length + " earthquakes found."}
-      </p>
       <GoogleMap
         onLoad={onMapLoad}
         onUnmount={onMapUnmount}
@@ -93,6 +89,12 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
           />
         ))}
       </GoogleMap>
+      <p className="underline decoration-orange-400 decoration-2 text-lg">
+        {data.features.length === 1
+          ? "1 earthquake found."
+          : data.features.length + " earthquakes found."}
+      </p>
+      <ResultsTable entries={markerList} toggleSelect={toggleSelect} />
     </div>
   );
 };
