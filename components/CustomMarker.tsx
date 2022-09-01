@@ -1,51 +1,47 @@
 import React from "react";
 import { Marker } from "@react-google-maps/api";
-import MarkerDetails from "../types/CustomMarkerType";
+import { EarthquakeData } from "../types/USGSDataType";
 
 const CustomMarker: React.FC<{
-  entry: MarkerDetails;
+  entry: EarthquakeData;
   map: google.maps.Map | null;
   toggleSelect: Function;
-}> = ({ entry, map, toggleSelect }) => {
+  isSelected: boolean;
+}> = ({ entry, map, toggleSelect, isSelected }) => {
   const icon: google.maps.Symbol = {
     path: google.maps.SymbolPath.CIRCLE,
-    scale: entry.details.properties.mag * 5,
-    fillColor: entry.selected ? "green" : "red",
+    scale: entry.properties.mag * 5,
+    fillColor: isSelected ? "green" : "red",
     fillOpacity: 0.25,
     strokeColor: "white",
     strokeWeight: 0.5,
   };
 
-  const position = React.useMemo(() => {
-    return {
-      lat: entry.details.geometry.coordinates[1],
-      lng: entry.details.geometry.coordinates[0],
-    };
-  }, [entry]);
-
   const infoWindow = React.useMemo(() => {
     return new google.maps.InfoWindow({
-      content: `<p>${entry.details.properties.place}<br>Magnitude: ${
-        entry.details.properties.mag
-      }<br>${new Date(entry.details.properties.time).toLocaleString()}</p>`,
-      position: position,
-      pixelOffset: new google.maps.Size(0, entry.details.properties.mag * -5),
+      content: `<p>${entry.properties.place}<br>Magnitude: ${
+        entry.properties.mag
+      }<br>${new Date(entry.properties.time).toLocaleString()}</p>`,
+      position: {
+        lat: entry.geometry.coordinates[1],
+        lng: entry.geometry.coordinates[0],
+      },
+      pixelOffset: new google.maps.Size(0, entry.properties.mag * -5),
     });
-  }, [entry, position]);
+  }, [entry]);
 
   if (map === null) return <></>;
 
   return (
     <Marker
-      position={position}
+      position={{
+        lat: entry.geometry.coordinates[1],
+        lng: entry.geometry.coordinates[0],
+      }}
       icon={icon}
       onMouseOver={() => infoWindow.open({ map: map })}
       onMouseOut={() => infoWindow.close()}
-      onClick={() => {
-        // InfoWindow duplicates on click and ignores mouseover/out events.
-        infoWindow.close();
-        toggleSelect(entry.id);
-      }}
+      onClick={() => toggleSelect(entry.id)}
     />
   );
 };

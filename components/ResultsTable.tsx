@@ -1,5 +1,5 @@
 import React from "react";
-import MarkerDetails from "../types/CustomMarkerType";
+import { EarthquakeData } from "../types/USGSDataType";
 import {
   ChevronUpIcon,
   ChevronDownIcon,
@@ -9,31 +9,30 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/outline";
 import { useTable, useSortBy, usePagination, Column } from "react-table";
-
-// TODO: stop full table rerender when selecting row
-// TODO: try centering table columns
+import PaginationButton from "./PaginationButton";
 
 const ResultsTable: React.FC<{
-  entries: MarkerDetails[];
+  entries: EarthquakeData[];
   toggleSelect: Function;
-}> = ({ entries, toggleSelect }) => {
+  selectedRows: { [key: string]: boolean };
+}> = ({ entries, toggleSelect, selectedRows }) => {
   const columns: Array<Column> = React.useMemo(() => {
     return [
       {
         Header: "Magnitude",
         id: "magnitude",
-        accessor: "details.properties.mag",
+        accessor: "properties.mag",
         sortType: "basic",
         sortDescFirst: true,
       },
       {
         Header: "Location",
-        accessor: "details.properties.place",
+        accessor: "properties.place",
         disableSortBy: true,
       },
       {
         Header: "Date",
-        accessor: "details.properties.time",
+        accessor: "properties.time",
         sortType: "basic",
         Cell: ({ value }) => <p>{new Date(value).toLocaleString()}</p>,
       },
@@ -58,8 +57,8 @@ const ResultsTable: React.FC<{
     state: { pageIndex, pageSize },
   } = useTable(
     {
-      columns: columns,
-      data: data,
+      columns,
+      data,
       initialState: { sortBy: [{ id: "magnitude", desc: true }] },
     },
     useSortBy,
@@ -69,13 +68,13 @@ const ResultsTable: React.FC<{
   return (
     <>
       <p className="text-center">
-        Highlight events on the map by clicking on rows in the table.
+        Highlight events on the map by clicking rows in the table.
         <br />
         You can sort events by magnitude or date.
       </p>
       <table
         {...getTableProps()}
-        className="text-center border-collapse border-none w-full"
+        className="text-center w-full border-separate border-spacing-0"
       >
         <thead>
           {headerGroups.map((headerGroup) => {
@@ -85,13 +84,15 @@ const ResultsTable: React.FC<{
               <tr key={key} {...restHeaderGroupProps}>
                 {headerGroup.headers.map((column) => {
                   const { key, ...restColumn } = column.getHeaderProps(
-                    column.getSortByToggleProps()
+                    column.getSortByToggleProps({ title: undefined })
                   );
                   return (
                     <th
                       key={key}
                       {...restColumn}
-                      className="px-5 py-3 bg-slate-800 text-white"
+                      className={`${
+                        column.canSort ? "hover:text-orange-400" : ""
+                      } px-5 py-3 bg-slate-800 text-white transition-[color] duration-200 ease-in border-r border-slate-200 last:border-r-0`}
                     >
                       <div className="flex flex-row flex-nowrap items-end gap-2 justify-center">
                         {column.render("Header")}
@@ -118,82 +119,76 @@ const ResultsTable: React.FC<{
           {page.map((row) => {
             prepareRow(row);
             const { key, ...restRowProps } = row.getRowProps();
+            // row.original has type {}
+            // @ts-ignore
+            const id = row.original.id;
             return (
               <tr
                 key={key}
                 {...restRowProps}
-                // row.original has type {}. Not sure how to fix
-                // @ts-ignore
-                onClick={() => toggleSelect(row.original.id)}
-                className={`relative transition-[background-color] duration-200 ease-in ${
-                  // @ts-ignore
-                  row.original.selected ? "bg-green-200" : "bg-white"
+                onClick={() => {
+                  toggleSelect(id);
+                }}
+                className={`p-0 cursor-pointer relative transition-[background-color] duration-200 ease-in ${
+                  selectedRows[id] ? "bg-green-200" : "bg-white"
                 }`}
               >
                 {row.cells.map((cell) => {
                   const { key, ...restCellProps } = cell.getCellProps();
                   return (
-                    <td key={key} {...restCellProps} className="px-4 py-2">
+                    <td
+                      key={key}
+                      {...restCellProps}
+                      className="px-4 py-2 border-r border-b first:border-l border-slate-400"
+                    >
                       {cell.render("Cell")}
                     </td>
                   );
                 })}
-                <span className="w-full h-full top-0 left-0 absolute border-l border-r border-b hover:border-2 hover:border-t-2 hover:border-slate-800"></span>
               </tr>
             );
           })}
         </tbody>
       </table>
       <div className="flex flex-row justify-center items-center gap-3">
-        <button
-          className={`${
-            canPreviousPage ? "bg-slate-800" : "bg-slate-500"
-          } text-white p-2 rounded-md`}
-          onClick={() => gotoPage(0)}
-          disabled={!canPreviousPage}
+        <PaginationButton
+          condition={canPreviousPage}
+          handleClick={() => gotoPage(0)}
         >
           <ChevronDoubleLeftIcon className="h-4" />
-        </button>
-        <button
-          className={`${
-            canPreviousPage ? "bg-slate-800" : "bg-slate-500"
-          } text-white p-2 rounded-md`}
-          onClick={() => previousPage()}
-          disabled={!canPreviousPage}
+        </PaginationButton>
+        <PaginationButton
+          condition={canPreviousPage}
+          handleClick={() => previousPage()}
         >
           <ChevronLeftIcon className="h-4" />
-        </button>
+        </PaginationButton>
+
         <p>
           Page <strong>{pageIndex + 1}</strong> of{" "}
           <strong>{pageOptions.length}</strong>
         </p>
-        <button
-          className={`${
-            canNextPage ? "bg-slate-800" : "bg-slate-500"
-          } text-white p-2 rounded-md`}
-          onClick={() => nextPage()}
-          disabled={!canNextPage}
+        <PaginationButton
+          condition={canNextPage}
+          handleClick={() => nextPage()}
         >
           <ChevronRightIcon className="h-4" />
-        </button>
-        <button
-          className={`${
-            canNextPage ? "bg-slate-800" : "bg-slate-500"
-          } text-white p-2 rounded-md`}
-          onClick={() => gotoPage(pageCount - 1)}
-          disabled={!canNextPage}
+        </PaginationButton>
+        <PaginationButton
+          condition={canNextPage}
+          handleClick={() => gotoPage(pageCount - 1)}
         >
           <ChevronDoubleRightIcon className="h-4" />
-        </button>
+        </PaginationButton>
       </div>
       <select
-        className="cursor-pointer bg-slate-800 text-white p-2 rounded-md appearance-none"
+        className="cursor-pointer bg-slate-800 text-white hover:text-orange-400 transition-[color] duration-200 ease-in p-2 rounded-md appearance-none"
         value={pageSize}
         onChange={(e) => setPageSize(Number(e.target.value))}
       >
         {[10, 20, 30, 40, 50].map((pageSize) => {
           return (
-            <option key={pageSize} value={pageSize}>
+            <option key={pageSize} value={pageSize} className="text-white">
               Show {pageSize}
             </option>
           );

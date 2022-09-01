@@ -1,42 +1,47 @@
 import { FC, useState, useEffect, useCallback, useRef } from "react";
-import { USGSReturnedObject } from "../types/USGSDataType";
+import { USGSReturnedObject, EarthquakeData } from "../types/USGSDataType";
 import { Marker, GoogleMap } from "@react-google-maps/api";
-import MarkerDetails from "../types/CustomMarkerType";
 import CustomMarker from "./CustomMarker";
 import ResultsTable from "./ResultsTable";
+
+type SelectedRow = {
+  [key: string]: boolean;
+};
 
 const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [markerList, setMarkerList] = useState<MarkerDetails[]>([]);
+  const [selectedRows, setSelectedRows] = useState<SelectedRow>({});
 
-  // This derived state handles adding/removing center marker from map.
+  // Derived states from data prop. Map markers don't work without it.
+  const [markerList, setMarkerList] = useState<EarthquakeData[]>([]);
   const [center, setCenter] = useState<google.maps.LatLng | null>(null);
 
   useEffect(() => {
     if (data === null || map === null) {
       setMarkerList([]);
+      setSelectedRows({});
       setCenter(null);
       return;
     }
 
     setCenter(data.center);
     const bounds = new google.maps.LatLngBounds(data.center);
-    const newMarkerList = data.features.map((entry): MarkerDetails => {
+    const newSelectedRows: SelectedRow = {};
+    const newMarkerList = data.features.map((entry): EarthquakeData => {
       bounds.extend({
         lat: entry.geometry.coordinates[1],
         lng: entry.geometry.coordinates[0],
       });
 
-      return {
-        details: entry,
-        id: entry.id,
-        selected: false,
-      };
+      newSelectedRows[entry.id] = false;
+
+      return entry;
     });
 
     setMarkerList(newMarkerList);
-    if (newMarkerList.length > 1) map.fitBounds(bounds);
+    setSelectedRows(newSelectedRows);
+    if (data.features.length > 1) map.fitBounds(bounds);
 
     if (sectionRef.current) {
       sectionRef.current.scrollIntoView({ behavior: "smooth" });
@@ -49,16 +54,13 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
 
   const onMapUnmount = useCallback((): void => {
     setMarkerList([]);
+    setSelectedRows({});
     setMap(null);
   }, []);
 
   const toggleSelect = (id: string): void => {
-    setMarkerList((prevState) => {
-      return prevState.map((entry) => {
-        return id === entry.id
-          ? { ...entry, selected: !entry.selected }
-          : entry;
-      });
+    setSelectedRows((prevState) => {
+      return { ...prevState, [id]: !prevState[id] };
     });
   };
 
@@ -86,15 +88,22 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
             map={map}
             key={entry.id}
             toggleSelect={toggleSelect}
+            isSelected={selectedRows[entry.id]}
           />
         ))}
       </GoogleMap>
-      <p className="underline decoration-orange-400 decoration-2 text-lg">
+      <p className="text-center underline decoration-orange-400 decoration-4 text-3xl">
         {data.features.length === 1
           ? "1 earthquake found."
           : data.features.length + " earthquakes found."}
       </p>
-      <ResultsTable entries={markerList} toggleSelect={toggleSelect} />
+      {data.features.length > 0 ? (
+        <ResultsTable
+          entries={markerList}
+          toggleSelect={toggleSelect}
+          selectedRows={selectedRows}
+        />
+      ) : null}
     </div>
   );
 };
