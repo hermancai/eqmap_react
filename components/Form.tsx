@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import FormSchema from "../types/FormSchema";
@@ -290,10 +289,6 @@ const Form: React.FC<{
       <LongLoadNotification showLongLoad={showLongLoad} isLoading={isLoading} />
     </div>
   );
-};
-
-Form.propTypes = {
-  setData: PropTypes.func.isRequired,
 };
 
 export default Form;
