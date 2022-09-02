@@ -24,7 +24,7 @@ const defaultFormValues: FormType = {
   startDateCheck: false,
   endDate: formatDate(new Date()),
   endDateCheck: true,
-  minMag: 7,
+  minMag: 6,
   maxMag: 10,
   searchRadius: 500,
   resultLimit: 20,

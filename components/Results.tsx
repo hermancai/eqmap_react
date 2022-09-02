@@ -1,69 +1,47 @@
 import { FC, useState, useEffect, useCallback, useRef } from "react";
-import { USGSReturnedObject } from "../models/USGSDataType";
+import { USGSReturnedObject, EarthquakeData } from "../types/USGSDataType";
 import { Marker, GoogleMap } from "@react-google-maps/api";
+import CustomMarker from "./CustomMarker";
+import ResultsTable from "./ResultsTable";
 
-type MarkerDetails = {
-  position: google.maps.LatLng | google.maps.LatLngLiteral;
-  icon?: string | google.maps.Icon | google.maps.Symbol | undefined;
-  time: number;
-  onMouseOver: Function;
-  onMouseOut: Function;
+type SelectedRow = {
+  [key: string]: boolean;
 };
 
 const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [markerList, setMarkerList] = useState<MarkerDetails[]>([]);
+  const [selectedRows, setSelectedRows] = useState<SelectedRow>({});
+
+  // Derived states from data prop. Map markers don't work without it.
+  const [markerList, setMarkerList] = useState<EarthquakeData[]>([]);
+  const [center, setCenter] = useState<google.maps.LatLng | null>(null);
 
   useEffect(() => {
-    if (data === null || map === null) return setMarkerList([]);
+    if (data === null || map === null) {
+      setMarkerList([]);
+      setSelectedRows({});
+      setCenter(null);
+      return;
+    }
 
+    setCenter(data.center);
     const bounds = new google.maps.LatLngBounds(data.center);
-    const newMarkerList = data.features.map((entry): MarkerDetails => {
-      const position = {
+    const newSelectedRows: SelectedRow = {};
+    const newMarkerList = data.features.map((entry): EarthquakeData => {
+      bounds.extend({
         lat: entry.geometry.coordinates[1],
         lng: entry.geometry.coordinates[0],
-      };
-
-      const redIcon: google.maps.Symbol = {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: entry.properties.mag * 5,
-        fillColor: "red",
-        fillOpacity: 0.25,
-        strokeColor: "white",
-        strokeWeight: 0.5,
-      };
-
-      const infoWindow = new google.maps.InfoWindow({
-        content: `<p>${entry.properties.place}<br>Magnitude: ${
-          entry.properties.mag
-        }<br>${new Date(entry.properties.time).toLocaleString()}</p>`,
-        position: position,
-        pixelOffset: new google.maps.Size(0, entry.properties.mag * -5),
       });
 
-      bounds.extend(position);
+      newSelectedRows[entry.id] = false;
 
-      return {
-        position: position,
-        icon: redIcon,
-        time: entry.properties.time,
-        onMouseOver: () => {
-          infoWindow.open({ map: map });
-        },
-        onMouseOut: () => infoWindow.close(),
-      };
-    });
-
-    newMarkerList.push({
-      position: data.center,
-      time: new Date().getTime(),
-      onMouseOut: () => null,
-      onMouseOver: () => null,
+      return entry;
     });
 
     setMarkerList(newMarkerList);
-    if (newMarkerList.length > 1) map.fitBounds(bounds);
+    setSelectedRows(newSelectedRows);
+    if (data.features.length > 1) map.fitBounds(bounds);
 
     if (sectionRef.current) {
       sectionRef.current.scrollIntoView({ behavior: "smooth" });
@@ -76,8 +54,15 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
 
   const onMapUnmount = useCallback((): void => {
     setMarkerList([]);
+    setSelectedRows({});
     setMap(null);
   }, []);
+
+  const toggleSelect = (id: string): void => {
+    setSelectedRows((prevState) => {
+      return { ...prevState, [id]: !prevState[id] };
+    });
+  };
 
   if (data === null) return <></>;
 
@@ -86,11 +71,6 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
       ref={sectionRef}
       className="w-[90%] mt-6 flex flex-col justify-center items-center bg-white rounded-md p-6 border-[1px] border-slate-300 gap-6"
     >
-      <p className="underline decoration-orange-400 decoration-2 text-lg">
-        {data.features.length === 1
-          ? "1 earthquake found."
-          : data.features.length + " earthquakes found."}
-      </p>
       <GoogleMap
         onLoad={onMapLoad}
         onUnmount={onMapUnmount}
@@ -101,19 +81,29 @@ const Results: FC<{ data: USGSReturnedObject | null }> = ({ data }) => {
         center={data.center}
         zoom={9}
       >
+        {center === null ? null : <Marker position={center}></Marker>}
         {markerList.map((entry) => (
-          <Marker
-            onMouseOver={() => {
-              console.log("hover");
-              entry.onMouseOver();
-            }}
-            onMouseOut={() => entry.onMouseOut()}
-            position={entry.position}
-            icon={entry.icon}
-            key={entry.time}
-          ></Marker>
+          <CustomMarker
+            entry={entry}
+            map={map}
+            key={entry.id}
+            toggleSelect={toggleSelect}
+            isSelected={selectedRows[entry.id]}
+          />
         ))}
       </GoogleMap>
+      <p className="text-center underline decoration-orange-400 decoration-4 text-3xl">
+        {data.features.length === 1
+          ? "1 earthquake found."
+          : data.features.length + " earthquakes found."}
+      </p>
+      {data.features.length > 0 ? (
+        <ResultsTable
+          entries={markerList}
+          toggleSelect={toggleSelect}
+          selectedRows={selectedRows}
+        />
+      ) : null}
     </div>
   );
 };

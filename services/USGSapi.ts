@@ -1,5 +1,5 @@
-import { FormType } from "../models/FormType";
-import { USGSReturnedObject } from "../models/USGSDataType";
+import { FormType } from "../types/FormType";
+import { USGSReturnedObject } from "../types/USGSDataType";
 
 const buildURL = (formValues: FormType, lat: number, lng: number): string => {
   let base =

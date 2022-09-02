@@ -1,34 +1,34 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Earthquake Map
 
-## Getting Started
+Hosted here: https://eqmap-silk.vercel.app/
 
-First, run the development server:
+This application maps earthquake data pulled from the U.S. Geological Survey.
 
-```bash
-npm run dev
-# or
-yarn dev
+Built with Typescript, React (Next.js), Tailwind CSS.
+
+## Run development server
+
+Get a Google Cloud Platform API key with the Map and Geocoder APIs enabled. 
+
+Create a '.env.local' file in the root directory with this content:
+
+```
+NEXT_PUBLIC_GOOGLE_MAP_API=<your API key>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+From the terminal: 
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```
+npm install
+npm run dev
+```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## Screenshots
 
-## Learn More
+![eqmap1](https://user-images.githubusercontent.com/30858461/188058821-93233fcd-94b0-4e3c-b8e9-24763b580d97.png)
 
-To learn more about Next.js, take a look at the following resources:
+![eqmap2](https://user-images.githubusercontent.com/30858461/188058839-39c877c4-2b62-45db-ad8c-bbc779b88641.png)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+![eqmap3](https://user-images.githubusercontent.com/30858461/188058850-72640e8a-5bbe-4055-b4d0-be3a43e0623d.png)

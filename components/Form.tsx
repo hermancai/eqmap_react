@@ -1,14 +1,12 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import FormSchema from "../models/FormSchema";
-import { FormType, defaultFormValues } from "../models/FormType";
+import FormSchema from "../types/FormSchema";
+import { FormType, defaultFormValues } from "../types/FormType";
 import { PencilIcon } from "@heroicons/react/outline";
 import FormErrorMessage from "./FormErrorMessage";
 import SearchErrorMessage from "./SearchErrorMessage";
-import { Transition } from "@headlessui/react";
-import { USGSReturnedObject } from "../models/USGSDataType";
+import { USGSReturnedObject } from "../types/USGSDataType";
 import { getCoordinates } from "../services/geocoder";
 import getUSGSdata from "../services/USGSapi";
 import useLoadWindowWithGoogle from "../hooks/useLoadWindowWithGoogle";
@@ -30,20 +28,14 @@ const LongLoadNotification: React.FC<{
 }> = ({ isLoading, showLongLoad }) => {
   if (!isLoading) return <></>;
   return (
-    <Transition
-      show={showLongLoad}
-      enter="transition-[opacity,transform] duration-1000"
-      enterFrom="opacity-0 -translate-y-full"
-      enterTo="opacity-100 translate-y-0"
-      leave="transition-[opacity,transform] duration-500"
-      leaveFrom="opacity-100 translate-y-0"
-      leaveTo="opacity-0 -translate-y-full"
+    <p
+      className={`self-center w-full text-center text-sm transition-[opacity,max-height,margin-top] duration-700 ease-linear ${
+        showLongLoad ? "opacity-100 max-h-56 mt-4" : "max-h-0 opacity-0 mt-0"
+      }`}
     >
-      <div className="self-center w-full text-center text-sm ">
-        <p>Getting data from USGS...</p>
-        <p>Depending on your search, this may take some time.</p>
-      </div>
-    </Transition>
+      Getting data from USGS...<br></br>
+      Depending on your search, this may take some time.
+    </p>
   );
 };
 
@@ -289,20 +281,14 @@ const Form: React.FC<{
           )}
           <span className="animateBorder bottomSpan"></span>
         </button>
-        <LongLoadNotification
-          isLoading={isLoading}
-          showLongLoad={showLongLoad}
-        />
+
         {searchError === "" ? null : (
           <SearchErrorMessage message={searchError} />
         )}
       </form>
+      <LongLoadNotification showLongLoad={showLongLoad} isLoading={isLoading} />
     </div>
   );
-};
-
-Form.propTypes = {
-  setData: PropTypes.func.isRequired,
 };
 
 export default Form;
