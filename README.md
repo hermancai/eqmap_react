@@ -1,6 +1,6 @@
 # Earthquake Map
 
-Hosted here: https://eqmap-silk.vercel.app/
+Updated version: https://github.com/hermancai/eqmap_next
 
 This application maps earthquake data pulled from the U.S. Geological Survey.
 
